@@ -26,11 +26,9 @@ else()
   link_directories(/usr/local/cuda/lib64)
 
   # tensorrt
-  include_directories(/workspace/shared/TensorRT-10.2.0.19/include/)
-  link_directories(/workspace/shared/TensorRT-10.2.0.19/lib/)
+  include_directories(/usr/include/TensorRT10/)
+  link_directories(/usr/lib/TensorRT10/)
 
-  # include_directories(/home/lindsay/TensorRT-7.2.3.4/include)
-  # link_directories(/home/lindsay/TensorRT-7.2.3.4/lib)
 endif()
 
 add_library(myplugins SHARED ${PROJECT_SOURCE_DIR}/plugin/yololayer.cu)
@@ -50,8 +48,8 @@ target_link_libraries(yolov8_det ${OpenCV_LIBS})
 add_executable(yolov8_seg ${PROJECT_SOURCE_DIR}/yolov8_seg.cpp ${SRCS})
 target_link_libraries(yolov8_seg nvinfer cudart myplugins ${OpenCV_LIBS})
 
-add_executable(yolov8_pose ${PROJECT_SOURCE_DIR}/yolov8_pose.cpp ${SRCS})
-target_link_libraries(yolov8_pose nvinfer cudart myplugins ${OpenCV_LIBS})
+# add_executable(yolov8_pose ${PROJECT_SOURCE_DIR}/yolov8_pose.cpp ${SRCS})
+# target_link_libraries(yolov8_pose nvinfer cudart myplugins ${OpenCV_LIBS})
 
-add_executable(yolov8_cls ${PROJECT_SOURCE_DIR}/yolov8_cls.cpp ${SRCS})
-target_link_libraries(yolov8_cls nvinfer cudart myplugins ${OpenCV_LIBS})
+# add_executable(yolov8_cls ${PROJECT_SOURCE_DIR}/yolov8_cls.cpp ${SRCS})
+# target_link_libraries(yolov8_cls nvinfer cudart myplugins ${OpenCV_LIBS})
