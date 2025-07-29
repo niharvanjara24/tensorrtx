@@ -161,8 +161,8 @@ void infer(IExecutionContext& context, cudaStream_t& stream, void** buffers, flo
                                    cudaMemcpyDeviceToHost, stream));
 
         auto end = std::chrono::system_clock::now();
-        std::cout << "inference time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
-                  << "ms" << std::endl;
+        // std::cout << "inference time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
+        //           << "ms" << std::endl;
     } else if (cuda_post_process == "g") {
         CUDA_CHECK(
                 cudaMemsetAsync(decode_ptr_device, 0, sizeof(float) * (1 + kMaxNumOutputBbox * bbox_element), stream));
@@ -282,8 +282,6 @@ int main(int argc, char** argv) {
     prepare_buffer(engine, &device_buffers[0], &device_buffers[1], &device_buffers[2], &output_buffer_host,
                    &output_seg_buffer_host, &decode_ptr_host, &decode_ptr_device, cuda_post_process);
 
-    //sleep(2);  // Allow time for the engine to be ready
-
     // Process one image at a time
     for (size_t i = 0; i < file_names.size(); i++) {
 
@@ -307,10 +305,10 @@ int main(int argc, char** argv) {
         if (cuda_post_process == "c") {
             // NMS for single image
             batch_nms(res_batch, output_buffer_host, 1, kOutputSize, kConfThresh, kNmsThresh);
-            // auto& res = res_batch[0];
-            // auto masks = process_mask(output_seg_buffer_host, kOutputSegSize, res);
-            // draw_mask_bbox(img, res, masks, labels_map);
-            // cv::imwrite("_" + file_names[i], img);
+            auto& res = res_batch[0];
+            auto masks = process_mask(output_seg_buffer_host, kOutputSegSize, res);
+            draw_mask_bbox(img, res, masks, labels_map);
+            cv::imwrite("_" + file_names[i], img);
         } else if (cuda_post_process == "g") {
             // Process gpu decode and nms results
             // batch_process(res_batch, decode_ptr_host, 1, bbox_element, img);
@@ -329,7 +327,7 @@ int main(int argc, char** argv) {
         // }
 
         auto img_end_time = std::chrono::high_resolution_clock::now();
-        std::cout << "Processing time for image " << file_names[i] << ": "
+        std::cout << "Processing time for image (preprocessing + inference time + postprocessing)" << file_names[i] << ": "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(img_end_time - img_start_time).count()
                   << " ms" << std::endl;
     }
@@ -348,15 +346,6 @@ int main(int argc, char** argv) {
     delete context;
     delete engine;
     delete runtime;
-
-    // Print histogram of the output distribution
-    // std::cout << "\nOutput:\n\n";
-    // for (unsigned int i = 0; i < kOutputSize; i++)
-    //{
-    //    std::cout << prob[i] << ", ";
-    //    if (i % 10 == 0) std::cout << std::endl;
-    //}
-    // std::cout << std::endl;
 
     return 0;
 }
